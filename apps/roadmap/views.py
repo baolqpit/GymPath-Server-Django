@@ -33,7 +33,7 @@ class RoadmapListCreateView(APIView):
         # 4. return Response(serializer.data)
         query = Roadmap.objects.filter(user=request.user).prefetch_related('phases')
 
-        is_active = query.query_params.get('is_active', None)
+        is_active = request.query_params.get('is_active', None)
 
         if is_active:
             query = query.filter(is_active=True)
@@ -56,7 +56,7 @@ class RoadmapListCreateView(APIView):
         # 4. return Response(serializer.data, status=201)
         serializer = RoadmapSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(request.user)
+        serializer.save(user=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -91,9 +91,9 @@ class RoadmapDetailView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
-        updated_roadmap = serializer.save()
+        serializer.save()
 
-        return Response(updated_roadmap.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(tags=['Roadmap'], summary='Cập nhật một phần lộ trình', request=RoadmapSerializer, responses={200: RoadmapSerializer})
     def patch(self, request, pk):
@@ -104,9 +104,9 @@ class RoadmapDetailView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
-        updated_roadmap = serializer.save()
+        serializer.save()
 
-        return Response(updated_roadmap.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(tags=['Roadmap'], summary='Xoá lộ trình', responses={204: None})
     def delete(self, request, pk):
@@ -156,7 +156,7 @@ class PhaseListCreateView(APIView):
         # 5. return Response(serializer.data, status=201)
         roadmap = self._get_roadmap(roadmap_pk, request.user)
 
-        serializer = RoadmapPhaseSerializer(roadmap, data=request.data, partial=True, context={'request': request})
+        serializer = RoadmapPhaseSerializer(data=request.data, context={'request': request})
 
         serializer.is_valid(raise_exception=True)
 
@@ -195,7 +195,7 @@ class PhaseDetailView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
-        serializer.save(roadmap=phase)
+        serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -207,7 +207,7 @@ class PhaseDetailView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
-        serializer.save(roadmap=phase)
+        serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

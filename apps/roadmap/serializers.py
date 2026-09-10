@@ -24,7 +24,7 @@ class RoadmapPhaseSerializer(serializers.ModelSerializer):
         # TODO:
         # 1. Nếu start_date và end_date đều có: kiểm tra end_date >= start_date
         # 2. return attrs
-        instance = getattr(self, 'isntance', None)
+        instance = getattr(self, 'instance', None)
 
         end_date = attrs.get('end_date', getattr(instance, 'end_date', None))
         start_date = attrs.get('start_date', getattr(instance, 'start_date', None))
