@@ -130,7 +130,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         # 2. Kiểm tra user.check_password(attrs['old_password']) → sai thì raise error
         # 3. Kiểm tra new_password == new_password_confirm → sai thì raise error
         # 4. return attrs
-        user = self.context['request'].userpublic
+        user = self.context['request'].user
         if not user.check_password(attrs['old_password']):
             raise serializers.ValidationError({'old_password': 'Mật khẩu hiện tại không chính xác.'})
         user.check_password(attrs['old_password'])
