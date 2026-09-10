@@ -24,7 +24,17 @@ class RoadmapPhaseSerializer(serializers.ModelSerializer):
         # TODO:
         # 1. Nếu start_date và end_date đều có: kiểm tra end_date >= start_date
         # 2. return attrs
-        raise NotImplementedError
+        instance = getattr(self, 'isntance', None)
+
+        end_date = attrs.get('end_date', getattr(instance, 'end_date', None))
+        start_date = attrs.get('start_date', getattr(instance, 'start_date', None))
+
+        if end_date and start_date and end_date <= start_date:
+            raise serializers.ValidationError({
+                'end_date': 'Ngày kết thúc phải sau ngày bắt đầu.'
+            })
+
+        return attrs
 
 
 class RoadmapSerializer(serializers.ModelSerializer):
@@ -53,4 +63,14 @@ class RoadmapSerializer(serializers.ModelSerializer):
         # TODO:
         # 1. Nếu end_date có: kiểm tra end_date > start_date
         # 2. return attrs
-        raise NotImplementedError
+        instance = getattr(self, 'instance', None)
+
+        end_date = attrs.get('end_date', getattr(instance, 'end_date', None))
+        start_date = attrs.get('start_date', getattr(instance, 'start_date', None))
+
+        if end_date and start_date and end_date <= start_date:
+            raise serializers.ValidationError({
+                'end_date': 'Ngày kết thúc phải sau ngày bắt đầu.'
+            })
+
+        return attrs
