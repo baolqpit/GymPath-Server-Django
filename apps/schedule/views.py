@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -35,7 +36,21 @@ class ScheduleListCreateView(APIView):
         #    if is_completed is not None: queryset = queryset.filter(is_completed=...)
         # 3. serializer = TrainingScheduleSerializer(queryset, many=True)
         # 4. return Response(serializer.data)
-        raise NotImplementedError
+        query = TrainingSchedule.objects.filter(user=request.user)
+
+        date = request.query_params.get('date', None)
+
+        is_completed = request.query_params.get('is_completed', None)
+
+        if date:
+            query = query.filter(date=date)
+
+        if is_completed is not None:
+            query = query.filter(is_completed=is_completed.lower() == 'true')
+
+        serializer = TrainingScheduleSerializer(query, many=True)
+
+        return Response(serializer.data)
 
     @extend_schema(
         tags=['Schedule'],
@@ -49,7 +64,10 @@ class ScheduleListCreateView(APIView):
         # 2. serializer.is_valid(raise_exception=True)
         # 3. serializer.save(user=request.user)   ← gán user tại đây
         # 4. return Response(serializer.data, status=201)
-        raise NotImplementedError
+        serializer = TrainingScheduleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -62,42 +80,34 @@ class ScheduleListCreateView(APIView):
 class ScheduleDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def _get_object(self, pk, user):
-        # TODO:
-        # 1. return TrainingSchedule.objects.get(pk=pk, user=user)
-        # 2. Nếu DoesNotExist → raise Http404 (from django.http import Http404)
-        raise NotImplementedError
+    @staticmethod
+    def _get_object(pk, user):
+        return get_object_or_404(TrainingSchedule, pk=pk, user=user)
 
     @extend_schema(tags=['Schedule'], summary='Chi tiết lịch tập', responses={200: TrainingScheduleSerializer})
     def get(self, request, pk):
-        # TODO:
-        # 1. schedule = self._get_object(pk, request.user)
-        # 2. serializer = TrainingScheduleSerializer(schedule)
-        # 3. return Response(serializer.data)
-        raise NotImplementedError
+        schedule = self._get_object(pk, request.user)
+        serializer = TrainingScheduleSerializer(schedule)
+        return Response(serializer.data)
 
     @extend_schema(tags=['Schedule'], summary='Cập nhật toàn bộ lịch tập', request=TrainingScheduleSerializer, responses={200: TrainingScheduleSerializer})
     def put(self, request, pk):
-        # TODO:
-        # 1. schedule = self._get_object(pk, request.user)
-        # 2. serializer = TrainingScheduleSerializer(schedule, data=request.data)
-        # 3. serializer.is_valid(raise_exception=True) / serializer.save()
-        # 4. return Response(serializer.data)
-        raise NotImplementedError
+        schedule = self._get_object(pk, request.user)
+        serializer = TrainingScheduleSerializer(schedule, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     @extend_schema(tags=['Schedule'], summary='Cập nhật một phần lịch tập', request=TrainingScheduleSerializer, responses={200: TrainingScheduleSerializer})
     def patch(self, request, pk):
-        # TODO:
-        # 1. schedule = self._get_object(pk, request.user)
-        # 2. serializer = TrainingScheduleSerializer(schedule, data=request.data, partial=True)
-        # 3. serializer.is_valid(raise_exception=True) / serializer.save()
-        # 4. return Response(serializer.data)
-        raise NotImplementedError
+        schedule = self._get_object(pk, request.user)
+        serializer = TrainingScheduleSerializer(schedule, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     @extend_schema(tags=['Schedule'], summary='Xoá lịch tập', responses={204: None})
     def delete(self, request, pk):
-        # TODO:
-        # 1. schedule = self._get_object(pk, request.user)
-        # 2. schedule.delete()
-        # 3. return Response(status=204)
-        raise NotImplementedError
+        schedule = self._get_object(pk, request.user)
+        schedule.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -1,7 +1,4 @@
-from tokenize import TokenError
-
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.db.models import Model
+from rest_framework_simplejwt.exceptions import TokenError
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated

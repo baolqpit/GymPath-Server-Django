@@ -25,9 +25,11 @@ class TrainingScheduleSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
 
     def validate(self, attrs):
-        # TODO:
-        # 1. Lấy start_time và end_time từ attrs
-        # 2. Nếu cả hai đều có: kiểm tra end_time > start_time
-        #    → Sai thì raise serializers.ValidationError({"end_time": "..."})
-        # 3. return attrs
-        raise NotImplementedError
+        instance = getattr(self, 'instance', None)
+        start_time = attrs.get('start_time', getattr(instance, 'start_time', None))
+        end_time = attrs.get('end_time', getattr(instance, 'end_time', None))
+
+        if start_time and end_time and end_time <= start_time:
+            raise serializers.ValidationError({'end_time': 'Giờ kết thúc phải sau giờ bắt đầu.'})
+
+        return attrs

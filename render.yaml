@@ -2,9 +2,11 @@ services:
   - type: web
     name: gympath-api
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python manage.py migrate --no-input
     startCommand: gunicorn gympath.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
+      - key: PYTHONPATH
+        value: /opt/render/project/src
       - key: DEBUG
         value: False
       - key: SECRET_KEY
