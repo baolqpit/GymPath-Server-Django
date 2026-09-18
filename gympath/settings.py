@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.schedule',
     'apps.roadmap',
     'apps.journal',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [
@@ -122,6 +123,14 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,  # Vô hiệu refresh token cũ sau khi rotate
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# ── Firebase Cloud Messaging ──────────────────────────────────────────────────
+# Tải file service account JSON từ Firebase Console:
+# Project Settings → Service Accounts → Generate new private key
+# Lưu file vào thư mục gốc, thêm vào .gitignore
+FIREBASE_SERVICE_ACCOUNT_PATH = BASE_DIR / config(
+    'FIREBASE_SERVICE_ACCOUNT', default='gympath-cf6d6-firebase-adminsdk-fbsvc-fee50af398.json'
+)
 
 # ── Spectacular (Swagger) ─────────────────────────────────────────────────────
 SPECTACULAR_SETTINGS = {
