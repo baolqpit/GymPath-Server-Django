@@ -6,11 +6,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
-# Render tự inject biến RENDER_EXTERNAL_HOSTNAME
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.vercel.app').split(',')
+# Render / Vercel tự inject hostname
 import os
 if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
     ALLOWED_HOSTS.append(os.environ['RENDER_EXTERNAL_HOSTNAME'])
+if os.environ.get('VERCEL_URL'):
+    ALLOWED_HOSTS.append(os.environ['VERCEL_URL'])
 
 # ── Apps ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files trong serverless
     'corsheaders.middleware.CorsMiddleware',  # Phải đặt trước CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -67,16 +70,31 @@ TEMPLATES = [
 WSGI_APPLICATION = 'gympath.wsgi.application'
 
 # ── Database – PostgreSQL ─────────────────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': config('DB_NAME', default='gymdb'),
-        'USER': config('DB_USER', default='gym'),
-        'PASSWORD': config('DB_PASSWORD', default='gym_pass_123'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+# Hỗ trợ 2 cách cấu hình:
+#   1. POSTGRES_URL (Vercel Postgres tự inject)
+#   2. DB_* từng biến riêng (local / Render)
+POSTGRES_URL = config('POSTGRES_URL', default='')
+
+if POSTGRES_URL:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(
+            POSTGRES_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': config('DB_NAME', default='gymdb'),
+            'USER': config('DB_USER', default='gym'),
+            'PASSWORD': config('DB_PASSWORD', default='gym_pass_123'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+        }
+    }
 
 # ── Custom User Model ─────────────────────────────────────────────────────────
 AUTH_USER_MODEL = 'authentication.User'
@@ -96,6 +114,12 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Django REST Framework ─────────────────────────────────────────────────────
